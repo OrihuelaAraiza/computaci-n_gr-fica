@@ -1,0 +1,19 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "macOS",
+      "intelliSenseMode": "macos-clang-arm64",
+      "compilerPath": "/usr/bin/clang++",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
+        "/opt/homebrew/include",
+        "/usr/local/include"
+      ],
+      "defines": []
+    }
+  ]
+}
