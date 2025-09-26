@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build tarea2",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "clang++ -std=c++17 -O2 Tarea2.cpp -o tarea2 $(pkg-config --cflags --libs opencv4)"
+      ],
+      "options": { "cwd": "${workspaceFolder}/Tarea_2" },
+      "problemMatcher": ["$gcc"],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "run tarea2",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-lc", "./tarea2"],
+      "options": { "cwd": "${workspaceFolder}/Tarea_2" },
+      "dependsOn": "build tarea2"
+    }
+  ]
+}

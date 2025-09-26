@@ -9,10 +9,15 @@
       "cppStandard": "c++17",
       "includePath": [
         "${workspaceFolder}/**",
-        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
-        "/opt/homebrew/include",
-        "/usr/local/include"
+        "/opt/homebrew/opt/opencv/include/opencv4"
       ],
+      "browse": {
+        "path": [
+          "${workspaceFolder}",
+          "/opt/homebrew/opt/opencv/include/opencv4"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      },
       "defines": []
     }
   ]
