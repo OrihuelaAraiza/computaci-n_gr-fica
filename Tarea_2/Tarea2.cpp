@@ -5,6 +5,11 @@
 #include <limits>
 #include <iostream>
 #include <string>
+#include <filesystem>
+#include <chrono>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
 
 using std::array;
 using std::vector;
@@ -285,6 +290,27 @@ static std::string modeName(ShadeMode m)
     }
     return "?";
 }
+static std::string saveScreenshot(const cv::Mat &frame)
+{
+    namespace fs = std::filesystem;
+    fs::path dir = "screenshots";
+    fs::create_directories(dir);
+    auto now = std::chrono::system_clock::now();
+    std::time_t tt = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &tt);
+#else
+    localtime_r(&tt, &tm);
+#endif
+    std::ostringstream oss;
+    oss << "frame_" << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".png";
+    fs::path file = dir / oss.str();
+    cv::Mat out8;
+    frame.convertTo(out8, CV_8UC3, 255.0);
+    cv::imwrite(file.string(), out8);
+    return file.string();
+}
 
 int main()
 {
@@ -305,6 +331,9 @@ int main()
     float angX = 0, angY = 0, angZ = 0;
     bool autorotate = true;
     bool showHelp = true;
+    std::string toast;
+    int toastFrames = 0;
+
     cv::namedWindow("Raster", cv::WINDOW_AUTOSIZE);
 
     while (true)
@@ -357,14 +386,16 @@ int main()
             cv::Point2f pa = toScreen(a), pb = toScreen(b), pc = toScreen(c);
             rast.drawTriangle(A, B, C, pa, pb, pc, t, lights);
         }
+
         if (showHelp)
         {
             const int pad = 14;
             std::vector<std::string> lines = {
-                "Rasterizador de Cubo  Controles:",
+                "Rasterizador de Cubo ",
                 "Rotar: W/S/A/D  |  Roll: Q/E  |  Auto-rotacion: SPACE",
                 "Cambiar modo: 1=Phong, 2=Depth, 3=VertexColor",
                 "Mover luz (X,Y): Flechas  |  Z: PgUp/PgDn o Z/X",
+                "Guardar captura: P  (carpeta ./screenshots)",
                 "Ocultar/mostrar ayuda: H  |  Salir: ESC",
                 std::string("Modo: ") + modeName(rast.mode),
                 std::string("Auto-rotacion: ") + (autorotate ? "ON" : "OFF"),
@@ -375,17 +406,24 @@ int main()
             int thickness = 1, baseline = 0;
             int lineH = int(std::round(cv::getTextSize("A", cv::FONT_HERSHEY_SIMPLEX, scale, thickness, &baseline).height + 8));
             int panelH = int(lines.size() * lineH + pad * 1.2);
-            int panelW = 560;
+            int panelW = 600;
             cv::Rect panel(pad, pad, panelW, std::min(panelH, H - 2 * pad));
             drawPanel(rast.frame, panel, 0.55f);
             putLines(rast.frame, panel.x + 12, panel.y + 24, lines, scale, thickness);
         }
         else
         {
-            cv::putText(rast.frame, "H: Ayuda  |  1/2/3 modos  |  Flechas y Z/X mueven luz  |  ESC salir",
+            cv::putText(rast.frame, "H: Ayuda  |  1/2/3 modos  |  Flechas y Z/X mueven luz  |  P: captura  |  ESC salir",
                         {12, 26}, cv::FONT_HERSHEY_SIMPLEX, 0.55, cv::Scalar(1.0, 1.0, 1.0), 1, cv::LINE_AA);
         }
-        cv::imshow("Tarea2 ", rast.frame);
+
+        if (toastFrames > 0)
+        {
+            cv::putText(rast.frame, toast, {16, H - 20}, cv::FONT_HERSHEY_SIMPLEX, 0.55, cv::Scalar(1.0, 1.0, 1.0), 1, cv::LINE_AA);
+            --toastFrames;
+        }
+
+        cv::imshow("Raster", rast.frame);
         int key = cv::waitKey(1);
         if (key == 27)
             break;
@@ -442,9 +480,11 @@ int main()
             lights[0].posCam.x += 0.2f;
             break;
         case 'z':
+        case 'Z':
             lights[0].posCam.z += 0.2f;
             break;
         case 'x':
+        case 'X':
             lights[0].posCam.z -= 0.2f;
             break;
         case 0x21:
@@ -453,6 +493,14 @@ int main()
         case 0x22:
             lights[0].posCam.z -= 0.2f;
             break;
+        case 'p':
+        case 'P':
+        {
+            std::string path = saveScreenshot(rast.frame);
+            toast = "Captura guardada: " + path;
+            toastFrames = 120;
+        }
+        break;
         default:
             break;
         }
