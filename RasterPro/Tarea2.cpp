@@ -238,7 +238,7 @@ struct Raster
                         Vec3 Pcam = pOverZ * z;
                         Vec3 V = normalize(Vec3{-Pcam.x, -Pcam.y, -Pcam.z});
                         cv::Vec3f base = tri.faceColor;
-                        float ka = 0.25f, kd = 0.85f, ks = 0.35f, shininess = 24.0f;
+                        float ka = 0.10f, kd = 0.95f, ks = 0.55f, shininess = 32.0f;
                         cv::Vec3f sum(0, 0, 0);
                         for (const auto &Lgt : lights)
                         {
@@ -288,7 +288,7 @@ static std::string modeName(ShadeMode m)
     case ShadeMode::VertexColor:
         return "Vertex color (3)";
     }
-    return "?";
+    return "";
 }
 static std::string saveScreenshot(const cv::Mat &frame)
 {
@@ -391,10 +391,10 @@ int main()
         {
             const int pad = 14;
             std::vector<std::string> lines = {
-                "Rasterizador de Cubo ",
+                "Rasterizador de Cubo  Controles:",
                 "Rotar: W/S/A/D  |  Roll: Q/E  |  Auto-rotacion: SPACE",
                 "Cambiar modo: 1=Phong, 2=Depth, 3=VertexColor",
-                "Mover luz (X,Y): Flechas  |  Z: PgUp/PgDn o Z/X",
+                "Mover luz (X,Y): Flechas o I/J/K/L  |  Z: PgUp/PgDn o Z/X",
                 "Guardar captura: P  (carpeta ./screenshots)",
                 "Ocultar/mostrar ayuda: H  |  Salir: ESC",
                 std::string("Modo: ") + modeName(rast.mode),
@@ -406,14 +406,14 @@ int main()
             int thickness = 1, baseline = 0;
             int lineH = int(std::round(cv::getTextSize("A", cv::FONT_HERSHEY_SIMPLEX, scale, thickness, &baseline).height + 8));
             int panelH = int(lines.size() * lineH + pad * 1.2);
-            int panelW = 600;
+            int panelW = 620;
             cv::Rect panel(pad, pad, panelW, std::min(panelH, H - 2 * pad));
             drawPanel(rast.frame, panel, 0.55f);
             putLines(rast.frame, panel.x + 12, panel.y + 24, lines, scale, thickness);
         }
         else
         {
-            cv::putText(rast.frame, "H: Ayuda  |  1/2/3 modos  |  Flechas y Z/X mueven luz  |  P: captura  |  ESC salir",
+            cv::putText(rast.frame, "H: Ayuda  |  1/2/3 modos  |  Flechas/IJKL y Z/X mueven luz  |  P: captura  |  ESC salir",
                         {12, 26}, cv::FONT_HERSHEY_SIMPLEX, 0.55, cv::Scalar(1.0, 1.0, 1.0), 1, cv::LINE_AA);
         }
 
@@ -424,9 +424,10 @@ int main()
         }
 
         cv::imshow("Raster", rast.frame);
-        int key = cv::waitKey(1);
+        int key = cv::waitKeyEx(1);
         if (key == 27)
             break;
+        float step = 0.5f;
         switch (key)
         {
         case 'h':
@@ -465,33 +466,55 @@ int main()
             break;
         case 65362:
         case 82:
-            lights[0].posCam.y += 0.2f;
+        case 2490368:
+            lights[0].posCam.y += step;
             break;
         case 65364:
         case 84:
-            lights[0].posCam.y -= 0.2f;
+        case 2621440:
+            lights[0].posCam.y -= step;
             break;
         case 65361:
         case 81:
-            lights[0].posCam.x -= 0.2f;
+        case 2424832:
+            lights[0].posCam.x -= step;
             break;
         case 65363:
         case 83:
-            lights[0].posCam.x += 0.2f;
+        case 2555904:
+            lights[0].posCam.x += step;
+            break;
+        case 'i':
+        case 'I':
+            lights[0].posCam.y += step;
+            break;
+        case 'k':
+        case 'K':
+            lights[0].posCam.y -= step;
+            break;
+        case 'j':
+        case 'J':
+            lights[0].posCam.x -= step;
+            break;
+        case 'l':
+        case 'L':
+            lights[0].posCam.x += step;
             break;
         case 'z':
         case 'Z':
-            lights[0].posCam.z += 0.2f;
+            lights[0].posCam.z += step;
             break;
         case 'x':
         case 'X':
-            lights[0].posCam.z -= 0.2f;
+            lights[0].posCam.z -= step;
             break;
         case 0x21:
-            lights[0].posCam.z += 0.2f;
+        case 2162688:
+            lights[0].posCam.z += step;
             break;
         case 0x22:
-            lights[0].posCam.z -= 0.2f;
+        case 2228224:
+            lights[0].posCam.z -= step;
             break;
         case 'p':
         case 'P':
